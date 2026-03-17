@@ -8,9 +8,8 @@ export default function Home() {
           Webcam + FaceAPI Demo
         </h1>
         <p className="text-sm text-zinc-600 dark:text-zinc-400">
-          使用{" "}
-          <span className="font-mono text-[0.9em]">@vladmandic/face-api</span>{" "}
-          在瀏覽器端即時偵測人臉、landmarks、年齡/性別、表情與 descriptor。
+          <span className="font-mono text-[0.9em]">@vladmandic/face-api</span> を使用して、
+          ブラウザ上でリアルタイムに顔、ランドマーク、年齢・性別、表情、ディスクリプタを検出します。
         </p>
       </header>
 

@@ -12,7 +12,7 @@ export default async function HomePage({
   const t = await getTranslations("HomePage");
 
   return (
-    <main className="w-full max-w-6xl mx-auto p-0 sm:p-10 pt-16">
+    <main className="w-full max-w-6xl mx-auto p-4 md:p-0 pt-16">
       <header className="mb-6 space-y-2">
         <h1 className="text-2xl font-semibold tracking-tight">
           {t("title")}

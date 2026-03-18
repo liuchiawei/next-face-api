@@ -3,6 +3,12 @@
 import { useEffect, useRef, useState } from "react";
 import type * as FaceApi from "@vladmandic/face-api";
 import { Webcam } from "@/components/ui/webcam";
+import {
+  getDetectionLabels,
+  translateExpressionString,
+  translateGender,
+  type DetectionLocale,
+} from "@/lib/detection-i18n";
 import { cn } from "@/lib/utils";
 
 type Status = "idle" | "loading_models" | "ready" | "running" | "error";
@@ -34,10 +40,13 @@ function topK<T extends Record<string, number>>(
 export function FaceApiWebcamDemo({
   modelUrl = DEFAULT_MODEL_URL,
   className,
+  detectionLocale = "ja",
 }: {
   modelUrl?: string;
   className?: string;
+  detectionLocale?: DetectionLocale;
 }) {
+  const labels = getDetectionLabels(detectionLocale);
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const rafRef = useRef<number | null>(null);
@@ -284,22 +293,27 @@ export function FaceApiWebcamDemo({
       <div className="w-full min-w-0">
         <div>
           <div className="text-sm text-zinc-600 dark:text-zinc-400">
-            性別:{" "}
+            {labels.genderLabel}:{" "}
             <span className="font-medium text-zinc-900 dark:text-zinc-100">
-              {gender ?? "—"}
+              {gender != null ? translateGender(gender, detectionLocale) : "—"}
             </span>
           </div>
           <div className="text-sm text-zinc-600 dark:text-zinc-400">
-            年齡:{" "}
+            {labels.ageLabel}:{" "}
             <span className="font-medium text-zinc-900 dark:text-zinc-100">
               {age != null ? Math.round(age) : "—"}
             </span>{" "}
-            才
+            {labels.ageSuffix}
           </div>
           <div className="text-sm text-zinc-600 dark:text-zinc-400">
-            表情:{" "}
+            {labels.expressionLabel}:{" "}
             <span className="font-medium text-zinc-900 dark:text-zinc-100">
-              {expressions != null ? expressions.join(", ") : "—"}
+              {expressions != null
+                ? translateExpressionString(
+                    expressions.join(", "),
+                    detectionLocale,
+                  )
+                : "—"}
             </span>
           </div>
         </div>

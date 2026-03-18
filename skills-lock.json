@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "skills": {
+    "next-intl-app-router": {
+      "source": "liuchiawei/agent-skills",
+      "sourceType": "github",
+      "computedHash": "77c01d0a058c9560a949ed039d5c400ab1767d327322049ec8f9c956ca778078"
+    }
+  }
+}

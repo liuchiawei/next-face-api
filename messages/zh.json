@@ -1,0 +1,21 @@
+{
+  "HomePage": {
+    "title": "Webcam + FaceAPI Demo",
+    "description": "使用 @vladmandic/face-api，在瀏覽器中即時偵測臉部、特徵點、年齡／性別、表情。"
+  },
+  "Detection": {
+    "genderLabel": "性別",
+    "ageLabel": "年齡",
+    "expressionLabel": "表情",
+    "ageSuffix": "才",
+    "male": "男",
+    "female": "女",
+    "neutral": "中性",
+    "happy": "開心",
+    "sad": "悲傷",
+    "angry": "生氣",
+    "fearful": "恐懼",
+    "disgusted": "厭惡",
+    "surprised": "驚訝"
+  }
+}

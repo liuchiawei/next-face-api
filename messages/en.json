@@ -1,0 +1,21 @@
+{
+  "HomePage": {
+    "title": "Webcam + FaceAPI Demo",
+    "description": "Using @vladmandic/face-api, detect face, landmarks, age/gender, and expression in real time in the browser."
+  },
+  "Detection": {
+    "genderLabel": "Gender",
+    "ageLabel": "Age",
+    "expressionLabel": "Expression",
+    "ageSuffix": "y",
+    "male": "Male",
+    "female": "Female",
+    "neutral": "Neutral",
+    "happy": "Happy",
+    "sad": "Sad",
+    "angry": "Angry",
+    "fearful": "Fearful",
+    "disgusted": "Disgusted",
+    "surprised": "Surprised"
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "HomePage": {
+    "title": "Webcam + FaceAPI Demo",
+    "description": "@vladmandic/face-api を使用して、ブラウザ上でリアルタイムに顔、ランドマーク、年齢・性別、表情を検出します。"
+  },
+  "Detection": {
+    "genderLabel": "性別",
+    "ageLabel": "年齢",
+    "expressionLabel": "表情",
+    "ageSuffix": "歳",
+    "male": "男性",
+    "female": "女性",
+    "neutral": "無表情",
+    "happy": "幸せ",
+    "sad": "悲しい",
+    "angry": "怒り",
+    "fearful": "恐れ",
+    "disgusted": "嫌悪",
+    "surprised": "驚き"
+  }
+}

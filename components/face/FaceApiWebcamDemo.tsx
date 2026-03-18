@@ -2,13 +2,9 @@
 
 import { useEffect, useRef, useState } from "react";
 import type * as FaceApi from "@vladmandic/face-api";
+import { useTranslations } from "next-intl";
 import { Webcam } from "@/components/ui/webcam";
-import {
-  getDetectionLabels,
-  translateExpressionString,
-  translateGender,
-  type DetectionLocale,
-} from "@/lib/detection-i18n";
+import { translateExpressionString } from "@/lib/detection-i18n";
 import { cn } from "@/lib/utils";
 
 type Status = "idle" | "loading_models" | "ready" | "running" | "error";
@@ -40,13 +36,17 @@ function topK<T extends Record<string, number>>(
 export function FaceApiWebcamDemo({
   modelUrl = DEFAULT_MODEL_URL,
   className,
-  detectionLocale = "ja",
 }: {
   modelUrl?: string;
   className?: string;
-  detectionLocale?: DetectionLocale;
 }) {
-  const labels = getDetectionLabels(detectionLocale);
+  const t = useTranslations("Detection");
+  const labels = {
+    genderLabel: t("genderLabel"),
+    ageLabel: t("ageLabel"),
+    expressionLabel: t("expressionLabel"),
+    ageSuffix: t("ageSuffix"),
+  };
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const rafRef = useRef<number | null>(null);
@@ -282,7 +282,7 @@ export function FaceApiWebcamDemo({
   return (
     <section className={cn("w-full grid md:grid-cols-2 gap-2", className)}>
       {/* Webcam */}
-      <div className="relative w-full min-w-0">
+      <div className="relative w-full min-w-0 md:row-span-2">
         <Webcam ref={videoRef} containerClassName="w-full" />
         <canvas
           ref={canvasRef}
@@ -295,7 +295,7 @@ export function FaceApiWebcamDemo({
           <div className="text-sm text-zinc-600 dark:text-zinc-400">
             {labels.genderLabel}:{" "}
             <span className="font-medium text-zinc-900 dark:text-zinc-100">
-              {gender != null ? translateGender(gender, detectionLocale) : "—"}
+              {gender != null ? t(gender.toLowerCase()) : "—"}
             </span>
           </div>
           <div className="text-sm text-zinc-600 dark:text-zinc-400">
@@ -303,7 +303,6 @@ export function FaceApiWebcamDemo({
             <span className="font-medium text-zinc-900 dark:text-zinc-100">
               {age != null ? Math.round(age) : "—"}
             </span>{" "}
-            {labels.ageSuffix}
           </div>
           <div className="text-sm text-zinc-600 dark:text-zinc-400">
             {labels.expressionLabel}:{" "}
@@ -311,50 +310,35 @@ export function FaceApiWebcamDemo({
               {expressions != null
                 ? translateExpressionString(
                     expressions.join(", "),
-                    detectionLocale,
+                    (key) => t(key),
                   )
                 : "—"}
             </span>
           </div>
         </div>
-        <div className="text-sm text-zinc-600 dark:text-zinc-400">
-          Status:{" "}
-          <span className="font-medium text-zinc-900 dark:text-zinc-100">
-            {status}
-          </span>
-          {backend ? (
-            <>
-              {" "}
-              · Backend:{" "}
-              <span className="font-medium text-zinc-900 dark:text-zinc-100">
-                {backend}
-              </span>
-            </>
-          ) : null}
-          {fps ? (
-            <>
-              {" "}
-              · FPS:{" "}
-              <span className="font-medium text-zinc-900 dark:text-zinc-100">
-                {fps}
-              </span>
-            </>
-          ) : null}{" "}
-          · Faces:{" "}
-          <span className="font-medium text-zinc-900 dark:text-zinc-100">
-            {facesCount}
-          </span>
-        </div>
-        <div className="text-xs text-zinc-600 dark:text-zinc-400">
-          Model URL: <span className="font-mono">{modelUrl}</span>
-        </div>
+      </div>
+      {/* Debug Info */}
+      <div className="text-xs text-muted-foreground bg-muted rounded-md p-2">
+        {fps ? (
+          <>
+            {" "}
+            FPS: <span>{fps}</span>
+          </>
+        ) : null}{" "}
+        | Faces: <span>{facesCount} </span>| Status: <span>{status}</span>
+        {backend ? (
+          <>
+            {" "}
+            | Backend: <span>{backend}</span>
+          </>
+        ) : null}
         {descriptorPreview ? (
-          <div className="text-xs text-zinc-600 dark:text-zinc-400">
+          <div>
             Descriptor: <span className="font-mono">{descriptorPreview}</span>
           </div>
         ) : null}
         {error ? (
-          <div role="alert" className="text-sm text-red-600">
+          <div role="alert" className="text-red-500">
             {error}
           </div>
         ) : null}

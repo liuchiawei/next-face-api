@@ -20,6 +20,10 @@ const EXPRESSION_EMOJI_MAP: Record<string, string> = {
   surprised: "😮",
 };
 
+export function expressionKeyToEmoji(key: string): string {
+  return EXPRESSION_EMOJI_MAP[key.toLowerCase()] ?? "❓";
+}
+
 /**
  * Parses strings like "neutral 85%" or "neutral 85%, happy 12%" and replaces
  * the expression name with an emoji while keeping the percent.
@@ -34,7 +38,7 @@ export function formatExpressionStringWithEmoji(str: string): string {
       const match = part.match(/^(\S+)\s+(\d+%)$/);
       if (!match) return part;
       const [, key, pct] = match;
-      const emoji = EXPRESSION_EMOJI_MAP[key.toLowerCase()] ?? "❓";
+      const emoji = expressionKeyToEmoji(key);
       return `${emoji} ${pct}`;
     })
     .join(", ");

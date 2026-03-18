@@ -4,15 +4,22 @@ import { useEffect, useRef, useState } from "react";
 import type * as FaceApi from "@vladmandic/face-api";
 import { useTranslations } from "next-intl";
 import { Webcam } from "@/components/ui/webcam";
-import { formatExpressionStringWithEmoji } from "@/lib/detection-i18n";
+import { expressionKeyToEmoji } from "@/lib/detection-i18n";
 import { cn } from "@/lib/utils";
 
 type Status = "idle" | "loading_models" | "ready" | "running" | "error";
 
+type ExpressionItem = {
+  key: string;
+  pct: number;
+  emoji: string;
+  isTop: boolean;
+};
+
 type FaceInfo = {
   gender: string | null;
   age: number | null;
-  expressions: string[] | null;
+  expressions: ExpressionItem[] | null;
 };
 
 const DEFAULT_MODEL_URL =
@@ -191,7 +198,16 @@ export function FaceApiWebcamDemo({
               age: typeof r.age === "number" ? r.age : null,
               expressions:
                 expr.length > 0
-                  ? expr.map(([k, v]) => `${String(k)} ${Math.round(v * 100)}%`)
+                  ? expr.map(([k, v], idx) => {
+                      const key = String(k);
+                      const pct = Math.round(v * 100);
+                      return {
+                        key,
+                        pct,
+                        emoji: expressionKeyToEmoji(key),
+                        isTop: idx === 0,
+                      };
+                    })
                   : null,
             };
           }),
@@ -289,13 +305,13 @@ export function FaceApiWebcamDemo({
             <p className="text-sm text-muted-foreground">—</p>
           ) : (
             faces.map((face, i) => (
-              <div className="flex gap-2" key={i}>
+              <div className="flex gap-2 w-full min-w-0" key={i}>
                 {faces.length > 1 && (
                   <p className="text-2xl font-semibold text-muted-foreground mb-1">
                     {i + 1}
                   </p>
                 )}
-                <div className="flex flex-col text-sm">
+                <div className="flex flex-col text-sm flex-1 min-w-0">
                   <div>
                     <span className="text-muted-foreground">{labels.genderLabel}:</span> {face.gender != null ? t(face.gender.toLowerCase()) : "—"}
                   </div>
@@ -303,9 +319,37 @@ export function FaceApiWebcamDemo({
                     <span className="text-muted-foreground">{labels.ageLabel}:</span> {face.age != null ? Math.round(face.age) : "—"}
                   </div>
                   <div>
-                    <span className="text-muted-foreground">{labels.expressionLabel}:</span> {face.expressions != null
-                      ? formatExpressionStringWithEmoji(face.expressions.join(", "))
-                      : "—"}
+                    <span className="text-muted-foreground">{labels.expressionLabel}:</span>{" "}
+                    {face.expressions != null ? (
+                      <div className="mt-1 space-y-1">
+                        {face.expressions.map((e, idx) => (
+                          <div
+                            className="flex items-center gap-2 w-full min-w-0"
+                            key={idx}
+                          >
+                            <span className="w-6 text-base leading-none">
+                              {e.emoji}
+                            </span>
+                            <div
+                              className="h-2 flex-1 min-w-0 rounded bg-muted overflow-hidden"
+                            >
+                              <div
+                                className={cn(
+                                  "h-full rounded",
+                                  e.isTop ? "bg-blue-500" : "bg-muted-foreground/40",
+                                )}
+                                style={{ width: `${Math.max(0, Math.min(100, e.pct))}%` }}
+                              />
+                            </div>
+                            <span className="w-12 text-right tabular-nums text-muted-foreground">
+                              {e.pct}%
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      "—"
+                    )}
                   </div>
                 </div>
               </div>

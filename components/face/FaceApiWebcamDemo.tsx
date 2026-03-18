@@ -63,6 +63,7 @@ export function FaceApiWebcamDemo({
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const rafRef = useRef<number | null>(null);
+  const lastAspectRef = useRef<string | null>(null);
   const faceapiRef = useRef<typeof FaceApi | null>(null);
   const tinyFaceOptionsRef = useRef<FaceApi.TinyFaceDetectorOptions | null>(
     null,
@@ -79,6 +80,7 @@ export function FaceApiWebcamDemo({
     null,
   );
   const [faces, setFaces] = useState<FaceInfo[]>([]);
+  const [mobileAspect, setMobileAspect] = useState<string>("16/9");
 
   useEffect(() => {
     let cancelled = false;
@@ -138,6 +140,30 @@ export function FaceApiWebcamDemo({
 
   useEffect(() => {
     const video = videoRef.current;
+    if (!video) return;
+
+    const updateAspect = () => {
+      const vw = video.videoWidth;
+      const vh = video.videoHeight;
+      if (!vw || !vh) return;
+      const next = `${vw}/${vh}`;
+      if (lastAspectRef.current === next) return;
+      lastAspectRef.current = next;
+      setMobileAspect(next);
+    };
+
+    video.addEventListener("loadedmetadata", updateAspect);
+    video.addEventListener("resize", updateAspect);
+    updateAspect();
+
+    return () => {
+      video.removeEventListener("loadedmetadata", updateAspect);
+      video.removeEventListener("resize", updateAspect);
+    };
+  }, []);
+
+  useEffect(() => {
+    const video = videoRef.current;
     const canvas = canvasRef.current;
     const faceapi = faceapiRef.current;
     const options = tinyFaceOptionsRef.current;
@@ -171,6 +197,12 @@ export function FaceApiWebcamDemo({
       const vw = video.videoWidth;
       const vh = video.videoHeight;
       if (!vw || !vh) return;
+
+      const nextAspect = `${vw}/${vh}`;
+      if (lastAspectRef.current !== nextAspect) {
+        lastAspectRef.current = nextAspect;
+        setMobileAspect(nextAspect);
+      }
 
       if (canvas.width !== vw || canvas.height !== vh) {
         canvas.width = vw;
@@ -293,7 +325,10 @@ export function FaceApiWebcamDemo({
       className={cn("w-full grid md:grid-cols-2 gap-2 md:gap-4 items-start", className)}
     >
       {/* Webcam */}
-      <div className="relative w-full min-w-0 md:row-span-2 self-start aspect-video overflow-hidden rounded-md bg-black">
+      <div
+        className="relative w-full min-w-0 md:row-span-2 self-start aspect-(--mobile-aspect) md:aspect-video overflow-hidden rounded-md bg-black"
+        style={{ ["--mobile-aspect" as never]: mobileAspect }}
+      >
         <Webcam
           ref={videoRef}
           containerClassName="absolute inset-0"

@@ -93,7 +93,7 @@ export function Webcam({
         playsInline
         muted
         className={cn(
-          "w-full h-full bg-black object-cover scale-x-[-1] rounded-xs",
+          "w-full h-full bg-black object-contain scale-x-[-1] rounded-xs",
           className,
         )}
       />

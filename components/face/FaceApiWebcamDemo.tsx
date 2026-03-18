@@ -289,10 +289,16 @@ export function FaceApiWebcamDemo({
   }, [status]);
 
   return (
-    <section className={cn("w-full grid md:grid-cols-2 gap-2", className)}>
+    <section
+      className={cn("w-full grid md:grid-cols-2 gap-2 items-start", className)}
+    >
       {/* Webcam */}
-      <div className="relative w-full min-w-0 md:row-span-2">
-        <Webcam ref={videoRef} containerClassName="w-full" />
+      <div className="relative w-full min-w-0 md:row-span-2 self-start aspect-video overflow-hidden rounded-md bg-black">
+        <Webcam
+          ref={videoRef}
+          containerClassName="absolute inset-0"
+          className="rounded-none"
+        />
         <canvas
           ref={canvasRef}
           className="pointer-events-none absolute inset-0 w-full h-full"

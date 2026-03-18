@@ -75,7 +75,7 @@ export function Webcam({
   return (
     <div
       className={cn(
-        "relative flex items-center justify-center w-full h-full",
+        "relative flex items-center justify-center w-full",
         containerClassName,
       )}
     >
@@ -93,7 +93,7 @@ export function Webcam({
         playsInline
         muted
         className={cn(
-          "w-full h-full aspect-video bg-black object-cover scale-x-[-1] rounded-xs",
+          "w-full h-full bg-black object-cover scale-x-[-1] rounded-xs",
           className,
         )}
       />

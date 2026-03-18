@@ -12,6 +12,10 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Agent skills and examples are not part of the app source.
+    ".agents/**",
+    // Standalone example file; keep out of lint by default.
+    "example.js",
   ]),
 ]);
 

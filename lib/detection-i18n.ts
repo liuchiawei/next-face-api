@@ -10,6 +10,36 @@
 
 export type TranslateFn = (key: string) => string;
 
+const EXPRESSION_EMOJI_MAP: Record<string, string> = {
+  neutral: "😐",
+  happy: "🙂",
+  sad: "😢",
+  angry: "😠",
+  fearful: "😨",
+  disgusted: "🤢",
+  surprised: "😮",
+};
+
+/**
+ * Parses strings like "neutral 85%" or "neutral 85%, happy 12%" and replaces
+ * the expression name with an emoji while keeping the percent.
+ *
+ * Output format: "<emoji> <pct>".
+ * Unknown keys: "❓ <pct>".
+ */
+export function formatExpressionStringWithEmoji(str: string): string {
+  const parts = str.split(/,\s*/);
+  return parts
+    .map((part) => {
+      const match = part.match(/^(\S+)\s+(\d+%)$/);
+      if (!match) return part;
+      const [, key, pct] = match;
+      const emoji = EXPRESSION_EMOJI_MAP[key.toLowerCase()] ?? "❓";
+      return `${emoji} ${pct}`;
+    })
+    .join(", ");
+}
+
 /**
  * Parses strings like "neutral 85%" or "neutral 85%, happy 12%", translates
  * the expression key via t() and keeps the " N%" part. Joins multiple with ", ".

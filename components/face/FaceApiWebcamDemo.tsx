@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import type * as FaceApi from "@vladmandic/face-api";
 import { useTranslations } from "next-intl";
 import { Webcam } from "@/components/ui/webcam";
-import { translateExpressionString } from "@/lib/detection-i18n";
+import { formatExpressionStringWithEmoji } from "@/lib/detection-i18n";
 import { cn } from "@/lib/utils";
 
 type Status = "idle" | "loading_models" | "ready" | "running" | "error";
@@ -304,10 +304,7 @@ export function FaceApiWebcamDemo({
                   </div>
                   <div>
                     <span className="text-muted-foreground">{labels.expressionLabel}:</span> {face.expressions != null
-                      ? translateExpressionString(
-                          face.expressions.join(", "),
-                          (key) => t(key),
-                        )
+                      ? formatExpressionStringWithEmoji(face.expressions.join(", "))
                       : "—"}
                   </div>
                 </div>

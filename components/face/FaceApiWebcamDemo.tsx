@@ -16,7 +16,10 @@ type FaceApiTfLike = {
   ready: () => Promise<void>;
   enableProdMode: () => Promise<void> | void;
   getBackend: () => string;
-  env: () => { flagRegistry: Record<string, unknown>; set: (k: string, v: unknown) => void };
+  env: () => {
+    flagRegistry: Record<string, unknown>;
+    set: (k: string, v: unknown) => void;
+  };
 };
 
 function topK<T extends Record<string, number>>(
@@ -54,6 +57,9 @@ export function FaceApiWebcamDemo({
   const [descriptorPreview, setDescriptorPreview] = useState<string | null>(
     null,
   );
+  const [gender, setGender] = useState<string | null>(null);
+  const [age, setAge] = useState<number | null>(null);
+  const [expressions, setExpressions] = useState<string[] | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -63,7 +69,8 @@ export function FaceApiWebcamDemo({
         setStatus("loading_models");
         setError(null);
 
-        const faceapi = (await import("@vladmandic/face-api")) as typeof FaceApi;
+        const faceapi =
+          (await import("@vladmandic/face-api")) as typeof FaceApi;
         if (cancelled) return;
         faceapiRef.current = faceapi;
 
@@ -73,7 +80,8 @@ export function FaceApiWebcamDemo({
 
         if (tf?.env().flagRegistry.CANVAS2D_WILL_READ_FREQUENTLY)
           tf.env().set("CANVAS2D_WILL_READ_FREQUENTLY", true);
-        if (tf?.env().flagRegistry.WEBGL_EXP_CONV) tf.env().set("WEBGL_EXP_CONV", true);
+        if (tf?.env().flagRegistry.WEBGL_EXP_CONV)
+          tf.env().set("WEBGL_EXP_CONV", true);
 
         await tf.enableProdMode();
         await tf.ready();
@@ -163,8 +171,26 @@ export function FaceApiWebcamDemo({
 
         setFacesCount(results.length);
 
-        if (results[0]?.descriptor) {
-          const d = results[0].descriptor;
+        const first = results[0];
+        if (first) {
+          setGender(first.gender ?? null);
+          setAge(typeof first.age === "number" ? first.age : null);
+          const expr = first.expressions
+            ? topK(first.expressions as unknown as Record<string, number>, 2)
+            : [];
+          setExpressions(
+            expr.length > 0
+              ? expr.map(([k, v]) => `${String(k)} ${Math.round(v * 100)}%`)
+              : null,
+          );
+        } else {
+          setGender(null);
+          setAge(null);
+          setExpressions(null);
+        }
+
+        if (first?.descriptor) {
+          const d = first.descriptor;
           const preview = Array.from(d.slice(0, 8))
             .map((n) => n.toFixed(3))
             .join(", ");
@@ -207,7 +233,8 @@ export function FaceApiWebcamDemo({
             r.gender && typeof r.genderProbability === "number"
               ? `${Math.round(r.genderProbability * 100)}% ${r.gender}`
               : "";
-          const ageText = typeof r.age === "number" ? `${Math.round(r.age)}y` : "";
+          const ageText =
+            typeof r.age === "number" ? `${Math.round(r.age)}y` : "";
 
           ctx.fillText(
             [genderText, ageText, exprText].filter(Boolean).join("  "),
@@ -244,8 +271,38 @@ export function FaceApiWebcamDemo({
   }, [status]);
 
   return (
-    <section className={cn("w-full", className)}>
-      <div className="mb-4 space-y-1">
+    <section className={cn("w-full grid md:grid-cols-2 gap-2", className)}>
+      {/* Webcam */}
+      <div className="relative w-full min-w-0">
+        <Webcam ref={videoRef} containerClassName="w-full" />
+        <canvas
+          ref={canvasRef}
+          className="pointer-events-none absolute inset-0 w-full h-full"
+        />
+      </div>
+      {/* Info */}
+      <div className="w-full min-w-0">
+        <div>
+          <div className="text-sm text-zinc-600 dark:text-zinc-400">
+            性別:{" "}
+            <span className="font-medium text-zinc-900 dark:text-zinc-100">
+              {gender ?? "—"}
+            </span>
+          </div>
+          <div className="text-sm text-zinc-600 dark:text-zinc-400">
+            年齡:{" "}
+            <span className="font-medium text-zinc-900 dark:text-zinc-100">
+              {age != null ? Math.round(age) : "—"}
+            </span>{" "}
+            才
+          </div>
+          <div className="text-sm text-zinc-600 dark:text-zinc-400">
+            表情:{" "}
+            <span className="font-medium text-zinc-900 dark:text-zinc-100">
+              {expressions != null ? expressions.join(", ") : "—"}
+            </span>
+          </div>
+        </div>
         <div className="text-sm text-zinc-600 dark:text-zinc-400">
           Status:{" "}
           <span className="font-medium text-zinc-900 dark:text-zinc-100">
@@ -268,8 +325,7 @@ export function FaceApiWebcamDemo({
                 {fps}
               </span>
             </>
-          ) : null}
-          {" "}
+          ) : null}{" "}
           · Faces:{" "}
           <span className="font-medium text-zinc-900 dark:text-zinc-100">
             {facesCount}
@@ -289,15 +345,6 @@ export function FaceApiWebcamDemo({
           </div>
         ) : null}
       </div>
-
-      <div className="relative w-full">
-        <Webcam ref={videoRef} containerClassName="w-full" />
-        <canvas
-          ref={canvasRef}
-          className="pointer-events-none absolute inset-0 w-full h-full"
-        />
-      </div>
     </section>
   );
 }
-

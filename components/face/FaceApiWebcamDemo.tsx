@@ -9,6 +9,12 @@ import { cn } from "@/lib/utils";
 
 type Status = "idle" | "loading_models" | "ready" | "running" | "error";
 
+type FaceInfo = {
+  gender: string | null;
+  age: number | null;
+  expressions: string[] | null;
+};
+
 const DEFAULT_MODEL_URL =
   "https://cdn.jsdelivr.net/npm/@vladmandic/face-api/model/";
 const MIRROR_VIDEO = true;
@@ -62,13 +68,10 @@ export function FaceApiWebcamDemo({
   const [error, setError] = useState<string | null>(null);
   const [backend, setBackend] = useState<string | null>(null);
   const [fps, setFps] = useState<number | null>(null);
-  const [facesCount, setFacesCount] = useState<number>(0);
   const [descriptorPreview, setDescriptorPreview] = useState<string | null>(
     null,
   );
-  const [gender, setGender] = useState<string | null>(null);
-  const [age, setAge] = useState<number | null>(null);
-  const [expressions, setExpressions] = useState<string[] | null>(null);
+  const [faces, setFaces] = useState<FaceInfo[]>([]);
 
   useEffect(() => {
     let cancelled = false;
@@ -178,26 +181,23 @@ export function FaceApiWebcamDemo({
           .withFaceDescriptors()
           .withAgeAndGender();
 
-        setFacesCount(results.length);
+        setFaces(
+          results.map((r) => {
+            const expr = r.expressions
+              ? topK(r.expressions as unknown as Record<string, number>, 2)
+              : [];
+            return {
+              gender: r.gender ?? null,
+              age: typeof r.age === "number" ? r.age : null,
+              expressions:
+                expr.length > 0
+                  ? expr.map(([k, v]) => `${String(k)} ${Math.round(v * 100)}%`)
+                  : null,
+            };
+          }),
+        );
 
         const first = results[0];
-        if (first) {
-          setGender(first.gender ?? null);
-          setAge(typeof first.age === "number" ? first.age : null);
-          const expr = first.expressions
-            ? topK(first.expressions as unknown as Record<string, number>, 2)
-            : [];
-          setExpressions(
-            expr.length > 0
-              ? expr.map(([k, v]) => `${String(k)} ${Math.round(v * 100)}%`)
-              : null,
-          );
-        } else {
-          setGender(null);
-          setAge(null);
-          setExpressions(null);
-        }
-
         if (first?.descriptor) {
           const d = first.descriptor;
           const preview = Array.from(d.slice(0, 8))
@@ -214,7 +214,7 @@ export function FaceApiWebcamDemo({
         ctx.font = "14px ui-sans-serif, system-ui, -apple-system, Segoe UI";
         ctx.textBaseline = "top";
 
-        for (const r of results) {
+        results.forEach((r, i) => {
           const box = r.detection.box;
           const bx = mx(vw, box.x, box.width);
 
@@ -224,31 +224,24 @@ export function FaceApiWebcamDemo({
 
           ctx.fillStyle = "deepskyblue";
           ctx.globalAlpha = 0.65;
-          const labelW = Math.max(160, box.width);
+          const labelText = String(i + 1);
+          // Measure text to size the blue background tightly
+          const metrics = ctx.measureText(labelText);
+          const paddingX = 8;
+          const labelW = Math.ceil(metrics.width + paddingX * 2);
+          const labelH = 24;
           const labelX = MIRROR_VIDEO ? mx(vw, box.x, labelW) : box.x;
-          ctx.fillRect(labelX, box.y - 40, labelW, 40);
+          const labelY = Math.max(0, box.y - labelH);
+          ctx.fillRect(labelX, labelY, labelW, labelH);
 
           ctx.globalAlpha = 1;
           ctx.fillStyle = "black";
 
-          const expr = r.expressions
-            ? topK(r.expressions as unknown as Record<string, number>, 2)
-            : [];
-          const exprText = expr
-            .map(([k, v]) => `${String(k)} ${Math.round(v * 100)}%`)
-            .join(" ");
-
-          const genderText =
-            r.gender && typeof r.genderProbability === "number"
-              ? `${Math.round(r.genderProbability * 100)}% ${r.gender}`
-              : "";
-          const ageText =
-            typeof r.age === "number" ? `${Math.round(r.age)}y` : "";
-
+          // Draw only the face index text
           ctx.fillText(
-            [genderText, ageText, exprText].filter(Boolean).join("  "),
-            labelX + 4,
-            Math.max(0, box.y - 36),
+            labelText,
+            labelX + paddingX,
+            labelY + Math.max(0, (labelH - 14) / 2),
           );
 
           if (r.landmarks?.positions?.length) {
@@ -262,7 +255,7 @@ export function FaceApiWebcamDemo({
             }
             ctx.globalAlpha = 1;
           }
-        }
+        });
       } catch (e) {
         setError(e instanceof Error ? e.message : "FaceAPI runtime error");
       } finally {
@@ -289,32 +282,38 @@ export function FaceApiWebcamDemo({
           className="pointer-events-none absolute inset-0 w-full h-full"
         />
       </div>
-      {/* Info */}
+      {/* Face Info */}
       <div className="w-full min-w-0">
-        <div>
-          <div className="text-sm text-zinc-600 dark:text-zinc-400">
-            {labels.genderLabel}:{" "}
-            <span className="font-medium text-zinc-900 dark:text-zinc-100">
-              {gender != null ? t(gender.toLowerCase()) : "—"}
-            </span>
-          </div>
-          <div className="text-sm text-zinc-600 dark:text-zinc-400">
-            {labels.ageLabel}:{" "}
-            <span className="font-medium text-zinc-900 dark:text-zinc-100">
-              {age != null ? Math.round(age) : "—"}
-            </span>{" "}
-          </div>
-          <div className="text-sm text-zinc-600 dark:text-zinc-400">
-            {labels.expressionLabel}:{" "}
-            <span className="font-medium text-zinc-900 dark:text-zinc-100">
-              {expressions != null
-                ? translateExpressionString(
-                    expressions.join(", "),
-                    (key) => t(key),
-                  )
-                : "—"}
-            </span>
-          </div>
+        <div className="space-y-2">
+          {faces.length === 0 ? (
+            <p className="text-sm text-muted-foreground">—</p>
+          ) : (
+            faces.map((face, i) => (
+              <div className="flex gap-2" key={i}>
+                {faces.length > 1 && (
+                  <p className="text-2xl font-semibold text-muted-foreground mb-1">
+                    {i + 1}
+                  </p>
+                )}
+                <div className="flex flex-col text-sm">
+                  <div>
+                    <span className="text-muted-foreground">{labels.genderLabel}:</span> {face.gender != null ? t(face.gender.toLowerCase()) : "—"}
+                  </div>
+                  <div>
+                    <span className="text-muted-foreground">{labels.ageLabel}:</span> {face.age != null ? Math.round(face.age) : "—"}
+                  </div>
+                  <div>
+                    <span className="text-muted-foreground">{labels.expressionLabel}:</span> {face.expressions != null
+                      ? translateExpressionString(
+                          face.expressions.join(", "),
+                          (key) => t(key),
+                        )
+                      : "—"}
+                  </div>
+                </div>
+              </div>
+            ))
+          )}
         </div>
       </div>
       {/* Debug Info */}
@@ -325,7 +324,7 @@ export function FaceApiWebcamDemo({
             FPS: <span>{fps}</span>
           </>
         ) : null}{" "}
-        | Faces: <span>{facesCount} </span>| Status: <span>{status}</span>
+        | Faces: <span>{faces.length} </span>| Status: <span>{status}</span>
         {backend ? (
           <>
             {" "}

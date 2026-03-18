@@ -1,7 +1,7 @@
 {
   "HomePage": {
     "title": "顔検出デモ",
-    "description": "@vladmandic/face-api を使用して、ブラウザ上でリアルタイムに顔、ランドマーク、年齢・性別、表情を検出します。"
+    "description": "ブラウザ上でリアルタイムに顔、ランドマーク、年齢・性別、表情を検出します。"
   },
   "Detection": {
     "genderLabel": "性別",

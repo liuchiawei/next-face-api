@@ -1,7 +1,7 @@
 {
   "HomePage": {
     "title": "Face Detection Demo",
-    "description": "Using @vladmandic/face-api, detect face, landmarks, age/gender, and expression in real time in the browser."
+    "description": "Detect face, landmarks, age/gender, and expression in real time in the browser."
   },
   "Detection": {
     "genderLabel": "Gender",

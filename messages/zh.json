@@ -1,7 +1,7 @@
 {
   "HomePage": {
     "title": "臉部偵測 Demo",
-    "description": "使用 @vladmandic/face-api，在瀏覽器中即時偵測臉部、特徵點、年齡／性別、表情。"
+    "description": "即時偵測臉部、特徵點、年齡／性別、表情。"
   },
   "Detection": {
     "genderLabel": "性別",
